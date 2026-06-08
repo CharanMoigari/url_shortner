@@ -1,0 +1,204 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: url_shortener_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url_shortener
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - url_shortener_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: url_shortener_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - url_shortener_network
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: url_shortener_rabbitmq
+    user: root
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"      # AMQP
+      - "15672:15672"    # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - url_shortener_network
+
+  # Backend Instance 1
+  backend1:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: url_shortener_backend1
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: url_shortener
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_change_in_production
+      CORS_ORIGIN: http://localhost:5173
+      BASE_URL: http://localhost
+      LOG_DIR: /app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - url_shortener_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Instance 2
+  backend2:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: url_shortener_backend2
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: url_shortener
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_change_in_production
+      CORS_ORIGIN: http://localhost:5173
+      BASE_URL: http://localhost
+      LOG_DIR: /app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - url_shortener_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx Load Balancer
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: url_shortener_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend1
+      - backend2
+    networks:
+      - url_shortener_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Analytics Worker
+  analytics_worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.worker
+    container_name: url_shortener_analytics_worker
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: url_shortener
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      JWT_SECRET: your_jwt_secret_key_change_in_production
+      LOG_DIR: /app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - url_shortener_network
+    restart: on-failure
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: url_shortener_frontend
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_URL: http://localhost/api
+      VITE_BASE_URL: http://localhost
+    depends_on:
+      - nginx
+    networks:
+      - url_shortener_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  url_shortener_network:
+    driver: bridge
