@@ -77,6 +77,16 @@ export const AnalyticsService = {
 
     return AnalyticsModel.getTotalClicksByUrlId(urlId);
   },
+
+  async getReferrerStats(urlId: string, userId: string) {
+    // Verify URL ownership
+    const url = await URLRepository.findByIdAndUserId(urlId, userId);
+    if (!url) {
+      throw new NotFoundError('URL not found');
+    }
+
+    return AnalyticsModel.getReferrerStats(urlId);
+  },
 };
 
 export default AnalyticsService;

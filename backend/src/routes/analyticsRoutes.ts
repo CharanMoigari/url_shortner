@@ -32,5 +32,10 @@ router.get(
   authMiddleware,
   analyticsController.getTotalClicks
 );
+router.get(
+  '/urls/:urlId/analytics/referrer',
+  authMiddleware,
+  analyticsController.getReferrerStats
+);
 
 export default router;

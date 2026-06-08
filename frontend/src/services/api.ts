@@ -134,6 +134,11 @@ class APIClient {
     const { data } = await this.client.get(`/urls/${urlId}/analytics/clicks`);
     return data.data;
   }
+
+  async getReferrerStats(urlId: string) {
+    const { data } = await this.client.get(`/urls/${urlId}/analytics/referrer`);
+    return data.data;
+  }
 }
 
 export const apiClient = new APIClient();

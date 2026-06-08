@@ -14,7 +14,12 @@ router.get('/:shortCode', async (req, res, next) => {
       req.headers['referer'] || ''
     );
 
-    res.redirect(301, originalUrl);
+    // Use 302 (Moved Temporarily) instead of 301 to prevent browser caching
+    // Add Cache-Control headers to ensure each click hits the backend
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.redirect(302, originalUrl);
   } catch (error) {
     next(error);
   }

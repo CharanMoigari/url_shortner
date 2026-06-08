@@ -102,10 +102,28 @@ export const getTotalClicks = async (
   }
 };
 
+export const getReferrerStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const stats = await AnalyticsService.getReferrerStats(
+      req.params.urlId,
+      req.userId!
+    );
+
+    sendResponse(res, 200, stats, 'Referrer statistics retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   getAnalytics,
   getBrowserStats,
   getDeviceStats,
   getDailyStats,
   getTotalClicks,
+  getReferrerStats,
 };

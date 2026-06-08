@@ -1,11 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 export const URLCard: React.FC<{
   url: any;
   onDelete: (id: string) => void;
   onCopy: (text: string) => void;
-}> = ({ url, onDelete, onCopy }) => {
+  onEdit: (url: any) => void;
+}> = ({ url, onDelete, onCopy, onEdit }) => {
+  const navigate = useNavigate();
+
   return (
     <div className="url-card">
       <div className="url-card-header">
@@ -57,6 +61,20 @@ export const URLCard: React.FC<{
           title={url.shortUrl || 'URL not available'}
         >
           Copy URL
+        </button>
+        <button
+          className="btn btn-sm btn-info"
+          onClick={() => navigate(`/analytics/${url.id}`)}
+          title="View analytics"
+        >
+          📊 Analytics
+        </button>
+        <button
+          className="btn btn-sm btn-warning"
+          onClick={() => onEdit(url)}
+          title="Edit URL"
+        >
+          ✏️ Edit
         </button>
         <button
           className="btn btn-sm btn-danger"

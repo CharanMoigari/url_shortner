@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../services/api';
 import { URLCard } from '../components/URLCard';
+import { EditURLModal } from '../components/EditURLModal';
 import { ShortURL } from '../types';
 import '../components/styles.css';
 
@@ -17,6 +18,8 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [editingUrl, setEditingUrl] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadURLs();
@@ -77,21 +80,76 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleEditURL = (url: any) => {
+    setEditingUrl(url);
+    setShowEditModal(true);
+  };
+
+  const handleSaveURL = async (id: string, originalUrl: string) => {
+    try {
+      await apiClient.updateURL(id, originalUrl);
+      setMessage('URL updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+      loadURLs();
+      setShowEditModal(false);
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
   const handleCopyToClipboard = (text: string) => {
     if (!text) {
       setError('URL is not available for copying');
       return;
     }
-    navigator.clipboard.writeText(text).then(
-      () => {
+
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => {
+          setMessage(`Copied: ${text}`);
+          setTimeout(() => setMessage(''), 3000);
+        },
+        () => {
+          // Fallback to old method if clipboard API fails
+          copyUsingFallback(text);
+        }
+      );
+    } else {
+      // Use fallback if clipboard API is not available
+      copyUsingFallback(text);
+    }
+  };
+
+  const copyUsingFallback = (text: string) => {
+    try {
+      // Create a temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      
+      // Execute copy command
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      if (successful) {
         setMessage(`Copied: ${text}`);
         setTimeout(() => setMessage(''), 3000);
-      },
-      () => {
+      } else {
         setError('Failed to copy to clipboard');
         setTimeout(() => setError(''), 3000);
       }
-    );
+    } catch (err) {
+      setError('Failed to copy to clipboard');
+      setTimeout(() => setError(''), 3000);
+    }
   };
 
   const handleLogout = () => {
@@ -178,12 +236,20 @@ export const Dashboard: React.FC = () => {
                   url={url}
                   onDelete={handleDeleteURL}
                   onCopy={handleCopyToClipboard}
+                  onEdit={handleEditURL}
                 />
               ))}
             </div>
           )}
         </section>
       </div>
+
+      <EditURLModal
+        url={editingUrl}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleSaveURL}
+      />
     </div>
   );
 };

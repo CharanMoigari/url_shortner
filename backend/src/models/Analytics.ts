@@ -94,6 +94,19 @@ export const AnalyticsModel = {
     );
     return parseInt(result.rows[0].count, 10);
   },
+
+  async getReferrerStats(urlId: string): Promise<any[]> {
+    const result = await query(
+      `SELECT referrer, COUNT(*) as count FROM analytics 
+       WHERE url_id = $1 AND referrer IS NOT NULL 
+       GROUP BY referrer 
+       ORDER BY count DESC 
+       LIMIT 10`,
+      [urlId]
+    );
+    return result.rows;
+  },
 };
+
 
 export default AnalyticsModel;
