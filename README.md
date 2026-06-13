@@ -1,6 +1,31 @@
-# URL Shortener Pro - Production-Grade Scalable Application
+# URL Shortener Pro - Production-Grade URL Shortening Service
 
-A complete, production-ready URL shortening service built with modern technologies. Designed for SDE-1 interviews at product-based companies.
+A complete, **production-ready** URL shortening service demonstrating **enterprise-level architecture**, **best practices**, and **scalability patterns**. Built with modern, industry-standard technologies.
+
+### 🎯 Ideal For:
+- Learning production system design
+- Technical portfolio projects  
+- Interview preparation
+- Building a real service
+
+---
+
+## ⚡ Quick Start
+
+**5 minutes to running:** 
+
+```bash
+# With Docker (Recommended)
+git clone https://github.com/yourusername/url-shortener-pro.git
+cd url-shortener-pro
+docker-compose up
+
+# Visit http://localhost
+```
+
+👉 **[Detailed Setup Guide →](./QUICK_START.md)**
+
+---
 
 ## 🏗️ Architecture Overview
 
@@ -339,18 +364,39 @@ docker-compose logs -f
 docker-compose up -d --scale backend=3
 ```
 
-## 📝 License
+---
 
-MIT
+## 📖 Documentation
+
+- **[Quick Start Guide](./QUICK_START.md)** - Get running in 5 minutes
+- **[Architecture Deep Dive](./ARCHITECTURE.md)** - Detailed system design
+- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Production deployment
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute
+- **[Configuration Guide](./CONFIG_GUIDE.md)** - Environment setup
 
 ---
 
-Built for SDE-1 interviews at product companies. Demonstrates:
-- Clean Architecture
-- Scalable System Design
-- Production-Ready Code
-- DevOps Practices
-- Database Optimization
-- Caching Strategies
-- Message Queues
-- Load Balancing
+## 📝 License
+
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📬 Contact & Support
+
+Have questions? Open an issue or reach out!
+
+---
+
+**Built to demonstrate:**
+- Production-Grade Architecture
+- System Design Best Practices
+- Scalable Backend Development
+- DevOps & Containerization
+- Enterprise Design Patterns

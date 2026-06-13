@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+"""
+Manual API Testing Script - Through Nginx
+
+This script tests the API through the Nginx reverse proxy (port 80).
+Use this when testing the full Docker setup.
+
+Usage:
+  python3 test_nginx.py
+
+Requirements:
+  pip install requests
+
+Prerequisites:
+  docker-compose up
+"""
 import requests
 import json
 
@@ -30,18 +45,15 @@ if response.status_code in [201, 409]:
     
     if r.status_code == 200:
         urls = r.json()['data']['data']
+        print(f'✅ Found {len(urls)} URLs')
+        
         if urls:
             url = urls[0]
-            print(f'\n✅ Successfully retrieved URLs:')
+            print(f'\nURL Details:')
             print(f'  Short Code: {url["shortCode"]}')
-            print(f'  Short URL: {url["shortUrl"]}')
-            print(f'  Click Count: {url["clickCount"]}')
-            print(f'\n✅ API is working correctly!')
-            print(f'✅ Rate limiting is fixed (no 429 errors)!')
-    else:
-        print(f'❌ Failed to get URLs: {r.status_code}')
-else:
-    print(f'❌ Failed to register/login: {response.status_code}')
-    if response.status_code == 429:
-        print('⚠️  Still getting 429 errors - rate limiter still too strict')
-    print(response.text[:200])
+            print(f'  Original: {url["originalUrl"]}')
+            print(f'  Clicks: {url["clickCount"]}')
+            
+            # Test redirect
+            response = requests.get(f'http://localhost/r/{url["shortCode"]}', allow_redirects=False, timeout=10)
+            print(f'\n✅ Redirect Test Status: {response.status_code}')

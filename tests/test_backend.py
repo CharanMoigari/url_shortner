@@ -1,4 +1,16 @@
 #!/usr/bin/env python3
+"""
+Manual API Testing Script - Direct Backend
+
+This script tests the API by hitting the backend directly (port 3000).
+Useful for local development testing.
+
+Usage:
+  python3 test_backend.py
+
+Requirements:
+  pip install requests
+"""
 import requests
 import json
 
@@ -29,11 +41,9 @@ if response.status_code in [201, 409]:
             url = urls[0]
             print(f'\nURL Info:')
             print(f'  Short Code: {url["shortCode"]}')
-            print(f'  Short URL: {url["shortUrl"]}')
-            print(f'  Click Count: {url["clickCount"]}')
-            print(f'\nSUCCESS: API is working correctly!')
-    else:
-        print(f'Failed to get URLs: {r.status_code}')
-else:
-    print(f'Failed to register/login: {response.status_code}')
-    print(response.text[:200])
+            print(f'  Original URL: {url["originalUrl"]}')
+            print(f'  Clicks: {url["clickCount"]}')
+            
+            # Test redirect
+            response = requests.get(f'http://localhost:3000/r/{url["shortCode"]}', allow_redirects=False)
+            print(f'\n✅ Redirect Status: {response.status_code}')
